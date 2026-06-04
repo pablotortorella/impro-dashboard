@@ -1,0 +1,5 @@
+# Evita subir reportes reales o planillas con datos personales.
+files/*.xls
+files/*.xlsx
+files/*.csv
+

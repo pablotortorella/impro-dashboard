@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Tablero de avance de formación corporativa de Gympro."
+    />
+    <title>Gympro | Tablero de formación</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <aside class="sidebar">
+      <a class="brand" href="#" aria-label="Gympro inicio">
+        <span class="brand-mark">G</span>
+        <span>gympro</span>
+      </a>
+
+      <nav class="main-nav" aria-label="Navegación principal">
+        <button class="nav-item active" data-view="overview">
+          <span class="nav-icon">⌂</span>
+          Resumen
+        </button>
+        <button class="nav-item" data-view="people">
+          <span class="nav-icon">◎</span>
+          Participantes
+        </button>
+        <button class="nav-item" data-view="courses">
+          <span class="nav-icon">▤</span>
+          Cursos
+        </button>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="help-card">
+          <span class="help-icon">?</span>
+          <strong>¿Necesitas ayuda?</strong>
+          <p>Estamos para acompañarte con tus reportes.</p>
+          <button>Contactar a Gympro</button>
+        </div>
+      </div>
+    </aside>
+
+    <main>
+      <header class="topbar">
+        <button class="menu-button" aria-label="Abrir menú">☰</button>
+        <div class="client-switcher">
+          <span class="client-logo">S</span>
+          <span>
+            <small>Organización</small>
+            <strong id="client-name">Acme Dibujitos S.A.</strong>
+          </span>
+          <span class="chevron">⌄</span>
+        </div>
+        <div class="topbar-actions">
+          <button class="icon-button" aria-label="Notificaciones">◔</button>
+          <button class="report-button">Descargar reporte <span>↓</span></button>
+        </div>
+      </header>
+
+      <div class="page">
+        <section class="view active" id="overview-view">
+          <div class="page-heading">
+            <div>
+              <p class="eyebrow">Formación corporativa</p>
+              <h1>Resumen de aprendizaje</h1>
+              <p class="subtitle">
+                Seguimiento del progreso de tu equipo en los programas de Gympro.
+              </p>
+            </div>
+            <div class="report-meta">
+              <span class="live-dot"></span>
+              <span id="report-meta-text">Datos de ejemplo</span>
+            </div>
+          </div>
+
+          <section class="upload-panel" aria-label="Subir archivo de avance">
+            <label class="upload-box" for="file-input">
+              <input id="file-input" type="file" accept=".xlsx" />
+              <span class="upload-icon">↑</span>
+              <span>
+                <strong>Subir planilla de avance</strong>
+                <small>Arrastra o selecciona un archivo .xlsx con el mismo formato</small>
+              </span>
+            </label>
+            <div class="file-status" id="file-status">
+              Usando datos de muestra: Planilla de ejemplo
+            </div>
+          </section>
+
+          <section class="kpi-grid" aria-label="Indicadores principales">
+            <article class="kpi-card">
+              <div class="kpi-icon purple">◎</div>
+              <span class="kpi-label">Participantes</span>
+              <strong id="total-students">0</strong>
+              <small><b>1 curso</b> activo</small>
+            </article>
+            <article class="kpi-card">
+              <div class="kpi-icon green">✓</div>
+              <span class="kpi-label">Finalizaron</span>
+              <strong id="completed-students">0</strong>
+              <small><b id="completed-percent">0%</b> del equipo</small>
+            </article>
+            <article class="kpi-card">
+              <div class="kpi-icon blue">↗</div>
+              <span class="kpi-label">En progreso</span>
+              <strong id="progress-students">0</strong>
+              <small>Necesitan seguimiento</small>
+            </article>
+            <article class="kpi-card">
+              <div class="kpi-icon orange">○</div>
+              <span class="kpi-label">Sin iniciar</span>
+              <strong id="not-started-students">0</strong>
+              <small>Invitaciones pendientes</small>
+            </article>
+          </section>
+
+          <section class="dashboard-grid">
+            <article class="panel progress-panel">
+              <div class="panel-heading">
+                <div>
+                  <h2>Avance general</h2>
+                  <p>Distribución de participantes por estado</p>
+                </div>
+                <button class="more-button" aria-label="Más opciones">•••</button>
+              </div>
+              <div class="donut-content">
+                <div class="donut-wrap">
+                  <div class="donut" id="status-donut">
+                    <div>
+                      <strong id="average-progress">0%</strong>
+                      <span>avance promedio</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="legend" id="status-legend"></div>
+              </div>
+              <div class="insight">
+                <span>✦</span>
+                <p>
+                  <strong>Buen ritmo de aprendizaje.</strong>
+                  La mayoría del equipo ya completó más del 80% del curso.
+                </p>
+              </div>
+            </article>
+
+            <article class="panel activity-panel">
+              <div class="panel-heading">
+                <div>
+                  <h2>Progreso por contenido</h2>
+                  <p>Porcentaje de participantes que completó cada hito</p>
+                </div>
+              </div>
+              <div class="bar-chart" id="content-chart"></div>
+            </article>
+          </section>
+
+          <section class="panel attention-panel">
+            <div class="panel-heading">
+              <div>
+                <h2>Personas que requieren atención</h2>
+                <p>Participantes sin iniciar o con avance incompleto</p>
+              </div>
+              <button class="text-button" data-go-to-people>Ver todos <span>→</span></button>
+            </div>
+            <div class="attention-list" id="attention-list"></div>
+          </section>
+        </section>
+
+        <section class="view" id="people-view">
+          <div class="page-heading">
+            <div>
+              <p class="eyebrow">Seguimiento individual</p>
+              <h1>Participantes</h1>
+              <p class="subtitle">Consulta el avance y los hitos completados por cada persona.</p>
+            </div>
+            <button class="report-button">Descargar reporte <span>↓</span></button>
+          </div>
+
+          <section class="panel people-panel">
+            <div class="filters">
+              <label class="search-box">
+                <span>⌕</span>
+                <input id="people-search" type="search" placeholder="Buscar por nombre o correo" />
+              </label>
+              <div class="filter-buttons" id="status-filters">
+                <button class="filter active" data-status="all">Todos</button>
+                <button class="filter" data-status="Finalizado">Finalizados</button>
+                <button class="filter" data-status="En progreso">En progreso</button>
+                <button class="filter" data-status="Sin iniciar">Sin iniciar</button>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Participante</th>
+                    <th>Estado</th>
+                    <th>Progreso</th>
+                    <th>Último avance</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="people-table"></tbody>
+              </table>
+            </div>
+            <div class="table-footer">
+              <span id="people-count"></span>
+              <span>Página 1 de 1</span>
+            </div>
+          </section>
+        </section>
+
+        <section class="view" id="courses-view">
+          <div class="page-heading">
+            <div>
+              <p class="eyebrow">Programas activos</p>
+              <h1>Cursos</h1>
+              <p class="subtitle">Visibilidad del desempeño de tu equipo por programa.</p>
+            </div>
+          </div>
+          <article class="course-card">
+            <div class="course-cover">
+              <span class="course-tag">Curso virtual</span>
+              <div class="course-shape shape-one"></div>
+              <div class="course-shape shape-two"></div>
+              <div class="course-letter">G</div>
+            </div>
+            <div class="course-body">
+              <div class="course-topline">
+                <span id="course-category">Comunicación</span>
+                <button class="more-button" aria-label="Más opciones">•••</button>
+              </div>
+              <h2 id="course-title">Expresión oral y corporal</h2>
+              <p id="course-description">Herramientas para comunicar ideas con seguridad, claridad y presencia.</p>
+              <div class="course-stats">
+                <span><strong id="course-students-count">32</strong> participantes</span>
+                <span><strong id="course-average">0%</strong> avance promedio</span>
+              </div>
+              <div class="course-progress"><span id="course-progress-bar"></span></div>
+              <button class="course-action" data-go-to-people>Ver participantes <span>→</span></button>
+            </div>
+          </article>
+        </section>
+      </div>
+    </main>
+
+    <div class="drawer-overlay" id="drawer-overlay"></div>
+    <aside class="detail-drawer" id="detail-drawer" aria-hidden="true">
+      <button class="drawer-close" id="drawer-close" aria-label="Cerrar">×</button>
+      <div id="drawer-content"></div>
+    </aside>
+
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
