@@ -44,19 +44,49 @@ const formatExcelDate = (serial) => {
   const number = Number(serial);
   if (!Number.isFinite(number)) return "";
   const date = new Date(Math.round((number - 25569) * 86400 * 1000));
-  return new Intl.DateTimeFormat("es", { day: "numeric", month: "short" }).format(date);
+  return new Intl.DateTimeFormat("es", { day: "numeric", month: "short", timeZone: "UTC" }).format(date);
 };
 
-const inferCourseName = (fileName) => {
+const formatExcelDateTime = (serial) => {
+  const number = Number(serial);
+  if (!Number.isFinite(number)) return "";
+  const date = new Date(Math.round((number - 25569) * 86400 * 1000));
+  return new Intl.DateTimeFormat("es", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "UTC",
+  }).format(date);
+};
+
+const titleCaseFirst = (value) => {
+  const text = String(value || "").trim();
+  return text ? text.charAt(0).toUpperCase() + text.slice(1) : "";
+};
+
+const inferCourseNameFromModules = (modules) => {
+  const moduleText = modules
+    .map((module) => String(module || "").trim())
+    .find((module) => /curso\s+(?:virtual\s+)?(?:en\s+)?[^:]+:/i.test(module));
+  const courseMatch = moduleText?.match(/curso\s+(?:virtual\s+)?(?:en\s+)?([^:]+):/i);
+  return titleCaseFirst(courseMatch?.[1]);
+};
+
+const inferCourseName = (fileName, modules = []) => {
+  const moduleCourseName = inferCourseNameFromModules(modules);
+  if (moduleCourseName) return moduleCourseName;
+
   const cleanName = fileName
-    .replace(/\.xlsx$/i, "")
+    .replace(/\.(csv|xlsx)$/i, "")
     .replace(/[_-]+/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 
   const courseMatch = cleanName.match(/curso\s+(?:virtual\s+)?(?:en\s+)?(.+)$/i);
   const candidate = courseMatch?.[1] || cleanName;
-  return candidate.charAt(0).toUpperCase() + candidate.slice(1);
+  return titleCaseFirst(candidate);
 };
 
 function getCounts() {
@@ -264,7 +294,14 @@ function openDrawer(studentId) {
           return `
             <div class="module-item">
               <span>${escapeHtml(module.name)}</span>
-              <span class="module-status ${stateClass}">${module.status}</span>
+              <span class="module-result">
+                <span class="module-status ${stateClass}">${module.status}</span>
+                ${
+                  module.status === "Finalizado" && module.completedAt
+                    ? `<small>${escapeHtml(module.completedAt)}</small>`
+                    : ""
+                }
+              </span>
             </div>
           `;
         })
@@ -415,6 +452,19 @@ function cellStatus(statusValue, dateValue) {
   return "No finalizado";
 }
 
+function formatCompletionDateTime(value) {
+  const text = String(value ?? "").trim();
+  if (!text) return "";
+
+  const number = Number(text);
+  if (Number.isFinite(number) && number > 0 && number < 100000) {
+    return formatExcelDateTime(number);
+  }
+
+  const timestamp = formatTimestampDateTime(text);
+  return timestamp || text;
+}
+
 function inferClientName(rows, emailColumn) {
   const email = rows
     .slice(1)
@@ -466,11 +516,6 @@ function buildDatasetFromRows(rows, fileName) {
       if (completed === modules.length) status = "Finalizado";
       if (completed === 0 && !hasProgress) status = "Sin iniciar";
 
-      const lastSerialDate = moduleStates
-        .map((module) => Number(module.date))
-        .filter((value) => Number.isFinite(value))
-        .sort((a, b) => b - a)[0];
-
       let lastActivityDate = "Sin actividad";
       if (moduleStates.some((m) => m.date)) {
         const lastDateValue = moduleStates.find((m) => m.status === "Finalizado")?.date ||
@@ -495,9 +540,10 @@ function buildDatasetFromRows(rows, fileName) {
         completed,
         progress,
         status,
-        modules: moduleStates.map(({ name: moduleName, status: moduleStatus }) => ({
+        modules: moduleStates.map(({ name: moduleName, status: moduleStatus, date }) => ({
           name: moduleName,
           status: moduleStatus,
+          completedAt: moduleStatus === "Finalizado" ? formatCompletionDateTime(date) : "",
         })),
         lastActivity: lastActivityDate,
       };
@@ -510,7 +556,7 @@ function buildDatasetFromRows(rows, fileName) {
 
   return {
     clientName: inferClientName(rows.slice(headerIndex + 1), emailColumn),
-    courseName: inferCourseName(fileName),
+    courseName: inferCourseName(fileName, modules),
     category: "Curso virtual",
     sourceName: fileName,
     updatedLabel: `Archivo cargado: ${fileName}`,
@@ -552,6 +598,23 @@ function formatTimestampDate(timestamp) {
     const date = new Date(timestamp);
     if (!Number.isFinite(date.getTime())) return "";
     return new Intl.DateTimeFormat("es", { day: "numeric", month: "short" }).format(date);
+  } catch {
+    return "";
+  }
+}
+
+function formatTimestampDateTime(timestamp) {
+  if (!timestamp || typeof timestamp !== "string") return "";
+  try {
+    const date = new Date(timestamp);
+    if (!Number.isFinite(date.getTime())) return "";
+    return new Intl.DateTimeFormat("es", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(date);
   } catch {
     return "";
   }

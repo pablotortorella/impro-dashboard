@@ -1137,6 +1137,22 @@ td {
   font-size: 9px;
 }
 
+.module-result {
+  display: inline-flex;
+  min-width: 118px;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  text-align: right;
+}
+
+.module-result small {
+  color: #8a959a;
+  font-size: 9px;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
 .module-status::before {
   display: grid;
   width: 15px;
