@@ -43,11 +43,22 @@ const demoRawStudents = [
   ["Dipper Pines", "dipper@misterios-del-bosque.test", 6],
 ];
 
+const demoCompletionDate = (studentIndex, moduleIndex) => {
+  const day = 3 + ((studentIndex + moduleIndex) % 6);
+  const hour = 9 + ((studentIndex + moduleIndex * 2) % 8);
+  const minute = (studentIndex * 7 + moduleIndex * 11) % 60;
+  return `${day} jul 2026, ${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+};
+
 const demoStudents = demoRawStudents.map(([name, email, completed, currentModule], index) => {
   const modules = demoCourseModules.map((module, moduleIndex) => {
     let status = moduleIndex < completed ? "Finalizado" : "No finalizado";
     if (moduleIndex === currentModule) status = "En progreso";
-    return { name: module, status };
+    return {
+      name: module,
+      status,
+      completedAt: status === "Finalizado" ? demoCompletionDate(index, moduleIndex) : "",
+    };
   });
 
   const progress = Math.round((completed / demoCourseModules.length) * 100);
