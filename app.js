@@ -66,27 +66,44 @@ const titleCaseFirst = (value) => {
   return text ? text.charAt(0).toUpperCase() + text.slice(1) : "";
 };
 
+const knownCourseNames = [
+  {
+    aliases: ["expresi n oral y corporal", "expresion oral y corporal"],
+    name: "Expresión oral y corporal",
+  },
+  {
+    aliases: ["comunicaci n para la acci n", "comunicacion para la accion"],
+    name: "Comunicación para la acción",
+  },
+];
+
+const cleanCourseName = (value) => {
+  const text = String(value || "")
+    .replace(/\.(csv|xlsx)$/i, "")
+    .replace(/\s*\(\d+\)\s*$/i, "")
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const normalized = normalizeText(text);
+  const knownCourse = knownCourseNames.find((course) => course.aliases.includes(normalized));
+  return knownCourse?.name || titleCaseFirst(text);
+};
+
 const inferCourseNameFromModules = (modules) => {
   const moduleText = modules
     .map((module) => String(module || "").trim())
     .find((module) => /curso\s+(?:virtual\s+)?(?:en\s+)?[^:]+:/i.test(module));
   const courseMatch = moduleText?.match(/curso\s+(?:virtual\s+)?(?:en\s+)?([^:]+):/i);
-  return titleCaseFirst(courseMatch?.[1]);
+  return cleanCourseName(courseMatch?.[1]);
 };
 
 const inferCourseName = (fileName, modules = []) => {
   const moduleCourseName = inferCourseNameFromModules(modules);
   if (moduleCourseName) return moduleCourseName;
 
-  const cleanName = fileName
-    .replace(/\.(csv|xlsx)$/i, "")
-    .replace(/[_-]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-
-  const courseMatch = cleanName.match(/curso\s+(?:virtual\s+)?(?:en\s+)?(.+)$/i);
-  const candidate = courseMatch?.[1] || cleanName;
-  return titleCaseFirst(candidate);
+  const fileBaseName = cleanCourseName(fileName);
+  const courseMatch = fileBaseName.match(/curso\s+(?:virtual\s+)?(?:en\s+)?(.+)$/i);
+  return cleanCourseName(courseMatch?.[1] || fileBaseName);
 };
 
 function getCounts() {
