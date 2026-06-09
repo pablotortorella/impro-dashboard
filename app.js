@@ -471,6 +471,23 @@ function buildDatasetFromRows(rows, fileName) {
         .filter((value) => Number.isFinite(value))
         .sort((a, b) => b - a)[0];
 
+      let lastActivityDate = "Sin actividad";
+      if (moduleStates.some((m) => m.date)) {
+        const lastDateValue = moduleStates.find((m) => m.status === "Finalizado")?.date ||
+          moduleStates.find((m) => m.status === "En progreso")?.date ||
+          moduleStates.filter((m) => m.date).pop()?.date;
+        if (lastDateValue) {
+          const numValue = Number(lastDateValue);
+          if (Number.isFinite(numValue) && numValue > 100000) {
+            lastActivityDate = formatTimestampDate(lastDateValue) || "Sin actividad";
+          } else if (Number.isFinite(numValue) && numValue > 0) {
+            lastActivityDate = formatExcelDate(numValue);
+          } else if (typeof lastDateValue === "string" && lastDateValue.includes("-")) {
+            lastActivityDate = formatTimestampDate(lastDateValue) || "Sin actividad";
+          }
+        }
+      }
+
       return {
         id: index + 1,
         name,
@@ -482,7 +499,7 @@ function buildDatasetFromRows(rows, fileName) {
           name: moduleName,
           status: moduleStatus,
         })),
-        lastActivity: lastSerialDate ? formatExcelDate(lastSerialDate) : "Sin actividad",
+        lastActivity: lastActivityDate,
       };
     })
     .filter(Boolean);
@@ -510,16 +527,62 @@ async function parseWorkbook(file) {
   return buildDatasetFromRows(rows, file.name);
 }
 
+async function parseCSV(file) {
+  return new Promise((resolve, reject) => {
+    Papa.parse(file, {
+      header: false,
+      skipEmptyLines: false,
+      complete: (results) => {
+        if (!results.data || !results.data.length) {
+          reject(new Error("El archivo CSV está vacío."));
+          return;
+        }
+        resolve(results.data);
+      },
+      error: (error) => {
+        reject(new Error(`Error al leer el CSV: ${error.message}`));
+      },
+    });
+  });
+}
+
+function formatTimestampDate(timestamp) {
+  if (!timestamp || typeof timestamp !== "string") return "";
+  try {
+    const date = new Date(timestamp);
+    if (!Number.isFinite(date.getTime())) return "";
+    return new Intl.DateTimeFormat("es", { day: "numeric", month: "short" }).format(date);
+  } catch {
+    return "";
+  }
+}
+
 async function handleFileUpload(file) {
   if (!file) return;
-  if (!file.name.toLowerCase().endsWith(".xlsx")) {
-    setFileStatus("Subí un archivo .xlsx para poder procesarlo.", "error");
+
+  const fileName = file.name.toLowerCase();
+  const isCSV = fileName.endsWith(".csv");
+  const isXLSX = fileName.endsWith(".xlsx");
+
+  if (!isCSV && !isXLSX) {
+    setFileStatus("Subí un archivo .csv o .xlsx para poder procesarlo.", "error");
     return;
   }
 
   try {
     setFileStatus(`Leyendo ${file.name}...`);
-    dataset = await parseWorkbook(file);
+
+    let rows;
+    if (isCSV) {
+      rows = await parseCSV(file);
+    } else {
+      const entries = await readZipEntries(await file.arrayBuffer());
+      const sharedStrings = getSharedStrings(textEntry(entries, "xl/sharedStrings.xml"));
+      const worksheetPath = getWorkbookSheetPath(entries);
+      rows = getWorksheetRows(textEntry(entries, worksheetPath), sharedStrings);
+    }
+
+    dataset = buildDatasetFromRows(rows, file.name);
     renderAll();
     setFileStatus(
       `Archivo cargado: ${dataset.students.length} participantes y ${dataset.modules.length} hitos.`,

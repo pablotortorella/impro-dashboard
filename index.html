@@ -8,13 +8,14 @@
       content="Tablero de avance de formación corporativa de Gympro."
     />
     <title>Gympro | Tablero de formación</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <aside class="sidebar">
-      <a class="brand" href="#" aria-label="Gympro inicio">
-        <span class="brand-mark">G</span>
-        <span>gympro</span>
+      <a class="brand" href="#" aria-label="El Morenito Inc inicio">
+        <img class="brand-mark" src="logo-elmorenito.png" alt="El Morenito Inc" />
+        <span>El Morenito Inc</span>
       </a>
 
       <nav class="main-nav" aria-label="Navegación principal">
@@ -32,14 +33,7 @@
         </button>
       </nav>
 
-      <div class="sidebar-bottom">
-        <div class="help-card">
-          <span class="help-icon">?</span>
-          <strong>¿Necesitas ayuda?</strong>
-          <p>Estamos para acompañarte con tus reportes.</p>
-          <button>Contactar a Gympro</button>
-        </div>
-      </div>
+      <div class="sidebar-bottom"></div>
     </aside>
 
     <main>
@@ -55,7 +49,6 @@
         </div>
         <div class="topbar-actions">
           <button class="icon-button" aria-label="Notificaciones">◔</button>
-          <button class="report-button">Descargar reporte <span>↓</span></button>
         </div>
       </header>
 
@@ -77,11 +70,11 @@
 
           <section class="upload-panel" aria-label="Subir archivo de avance">
             <label class="upload-box" for="file-input">
-              <input id="file-input" type="file" accept=".xlsx" />
+              <input id="file-input" type="file" accept=".csv,.xlsx" />
               <span class="upload-icon">↑</span>
               <span>
                 <strong>Subir planilla de avance</strong>
-                <small>Arrastra o selecciona un archivo .xlsx con el mismo formato</small>
+                <small>Arrastra o selecciona un archivo .csv o .xlsx con el mismo formato</small>
               </span>
             </label>
             <div class="file-status" id="file-status">
@@ -175,7 +168,6 @@
               <h1>Participantes</h1>
               <p class="subtitle">Consulta el avance y los hitos completados por cada persona.</p>
             </div>
-            <button class="report-button">Descargar reporte <span>↓</span></button>
           </div>
 
           <section class="panel people-panel">
@@ -252,6 +244,11 @@
       <div id="drawer-content"></div>
     </aside>
 
+    <footer class="footer">
+      <p>&copy; 2026 <strong>El Morenito Inc</strong> &mdash; Todos los derechos reservados.</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
     <script src="data.js"></script>
     <script src="app.js"></script>
   </body>

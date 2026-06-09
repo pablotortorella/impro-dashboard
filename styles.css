@@ -63,14 +63,10 @@ button {
 }
 
 .brand-mark {
-  display: grid;
-  width: 30px;
-  height: 30px;
-  place-items: center;
-  border-radius: 10px 10px 10px 3px;
-  background: var(--green);
-  color: #fff;
-  font-size: 18px;
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  flex: 0 0 auto;
 }
 
 .main-nav {
@@ -1320,4 +1316,28 @@ td {
   .bar-row {
     grid-template-columns: 100px 1fr 28px;
   }
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 42px;
+  border-top: 1px solid var(--line);
+  background: #fff;
+}
+
+.footer p {
+  margin: 0;
+  color: #8a959a;
+  font-family:
+    Inter, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+.footer strong {
+  color: #2f4845;
+  font-weight: 600;
 }
