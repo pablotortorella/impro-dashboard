@@ -162,6 +162,65 @@ function getAverageProgress() {
   return Math.round(students.reduce((sum, student) => sum + student.progress, 0) / students.length);
 }
 
+function getGroupInsight(counts, averageProgress, total) {
+  if (!total) {
+    return {
+      title: "Sin datos.",
+      message: "No hay participantes cargados para calcular el avance del grupo.",
+      recommendation: "Carga una planilla con participantes para generar una lectura del progreso.",
+    };
+  }
+
+  const completed = counts.Finalizado || 0;
+  const inProgress = counts["En progreso"] || 0;
+  const notStarted = counts["Sin iniciar"] || 0;
+  const completedPercent = (completed / total) * 100;
+  const notStartedPercent = (notStarted / total) * 100;
+  const progressLabel = `${averageProgress}% de avance promedio`;
+
+  if (completed === total || completedPercent >= 70) {
+    return {
+      title: "Cierre exitoso.",
+      message: `${completed} de ${total} participantes finalizaron el curso, con ${progressLabel}.`,
+      recommendation:
+        completed === total
+          ? "Prepara el reporte final y usa los aprendizajes para próximos grupos."
+          : "Acompaña los casos pendientes para cerrar el proceso y consolidar el reporte final.",
+    };
+  }
+
+  if (notStartedPercent >= 80) {
+    return {
+      title: "Sin activación.",
+      message: `${notStarted} de ${total} participantes todavía no han iniciado el curso.`,
+      recommendation: "Prioriza recordatorios directos, confirma accesos y revisa barreras para empezar.",
+    };
+  }
+
+  if (notStartedPercent >= 40) {
+    return {
+      title: "Activación baja.",
+      message: `${notStarted} participantes siguen sin iniciar, aunque ${completed + inProgress} ya registran avance.`,
+      recommendation:
+        "Enfoca el seguimiento en quienes están en 0% y refuerza la importancia de completar el primer módulo.",
+    };
+  }
+
+  if (completedPercent < 40 || inProgress >= completed) {
+    return {
+      title: "En progreso.",
+      message: `${inProgress} participantes están avanzando y ${completed} ya finalizaron, con ${progressLabel}.`,
+      recommendation: "Acompaña a quienes están en progreso y define una fecha objetivo para completar el curso.",
+    };
+  }
+
+  return {
+    title: "Buen avance.",
+    message: `${completed + inProgress} de ${total} participantes ya iniciaron o finalizaron el curso.`,
+    recommendation: "Concentra el esfuerzo en los casos pendientes para cerrar brechas y subir la finalización.",
+  };
+}
+
 function setFileStatus(message, type = "") {
   const status = document.querySelector("#file-status");
   status.textContent = message;
@@ -185,20 +244,27 @@ function renderShell() {
 function renderOverview() {
   const counts = getCounts();
   const averageProgress = getAverageProgress();
-  const total = students.length || 1;
+  const total = students.length;
+  const safeTotal = total || 1;
 
   document.querySelector("#total-students").textContent = students.length;
   document.querySelector("#completed-students").textContent = counts.Finalizado || 0;
   document.querySelector("#progress-students").textContent = counts["En progreso"] || 0;
   document.querySelector("#not-started-students").textContent = counts["Sin iniciar"] || 0;
   document.querySelector("#completed-percent").textContent =
-    `${Math.round(((counts.Finalizado || 0) / total) * 100)}%`;
+    `${Math.round(((counts.Finalizado || 0) / safeTotal) * 100)}%`;
   document.querySelector("#average-progress").textContent = `${averageProgress}%`;
   document.querySelector("#course-average").textContent = `${averageProgress}%`;
   document.querySelector("#course-progress-bar").style.width = `${averageProgress}%`;
 
-  const finalPercent = ((counts.Finalizado || 0) / total) * 100;
-  const progressPercent = ((counts["En progreso"] || 0) / total) * 100;
+  const insight = getGroupInsight(counts, averageProgress, total);
+  document.querySelector("#insight-title").textContent = insight.title;
+  document.querySelector("#insight-message").textContent = insight.message;
+  document.querySelector("#insight-recommendation").textContent =
+    `Recomendación: ${insight.recommendation}`;
+
+  const finalPercent = ((counts.Finalizado || 0) / safeTotal) * 100;
+  const progressPercent = ((counts["En progreso"] || 0) / safeTotal) * 100;
   const donut = document.querySelector("#status-donut");
   donut.style.background = `conic-gradient(
     ${statusColors.Finalizado} 0 ${finalPercent}%,
@@ -223,7 +289,7 @@ function renderOverview() {
       const completed = students.filter(
         (student) => student.modules[index]?.status === "Finalizado",
       ).length;
-      const percent = Math.round((completed / total) * 100);
+      const percent = Math.round((completed / safeTotal) * 100);
       return `
         <div class="bar-row">
           <span class="bar-label" title="${escapeHtml(module)}">${escapeHtml(module)}</span>

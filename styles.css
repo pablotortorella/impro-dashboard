@@ -628,7 +628,13 @@ h1 {
 }
 
 .insight strong {
+  display: block;
   color: #1f1e20;
+}
+
+.insight-recommendation {
+  display: block;
+  margin-top: 3px;
 }
 
 .bar-chart {
