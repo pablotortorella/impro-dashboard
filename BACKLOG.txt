@@ -1,0 +1,81 @@
+BACKLOG - Dashboard El Morenito Inc
+Actualizado: 2026-06-10
+
+Estado actual
+-------------
+- Dashboard estático publicado desde GitHub Pages.
+- Branding actualizado a El Morenito Inc, con logo y favicon propios.
+- Carga local de archivos .csv y .xlsx.
+- Parser CSV independiente del CDN: PapaParse queda incluido como papaparse.min.js.
+- Vista de resumen con KPIs, progreso por contenido y personas que requieren atención.
+- Vista de participantes con búsqueda, filtros por estado y detalle individual.
+- Vista de cursos con nombre del curso inferido desde la planilla o el nombre del archivo.
+- Detalle de estudiante con estado por módulo.
+- Módulos finalizados muestran fecha y hora de finalización cuando la planilla la trae.
+- Datos demo actualizados con fechas y horas de finalización para mantener coherencia visual.
+- Limpieza de nombres importados: remueve sufijos como (1), extensiones .csv/.xlsx y corrige nombres conocidos sin tildes.
+- Validación de formatos reales: el importador detecta participante, email, módulos, estados y fechas; además limpia tildes rotas y sufijos en cursos y detalle de alumnos.
+
+Pendientes prioritarios
+-----------------------
+1. Preparar paquete para hosting de El Morenito Inc.
+   - Confirmar carpeta destino: /dashboard/ o subdominio dashboard.elmorenitoinc.com.
+   - Subir index.html, app.js, data.js, styles.css, papaparse.min.js, favicon.ico y logo-elmorenito.png.
+   - Probar carga de .csv y .xlsx en el hosting final.
+
+2. Evitar caché viejo en producción.
+   - Versionar assets en index.html cuando haya nuevos deploys.
+   - Ejemplo: styles.css?v=20260609, data.js?v=20260609, app.js?v=20260609.
+
+Pendientes funcionales
+----------------------
+3. Exportar reporte.
+   - Definir si el botón descarga CSV, PDF o XLSX.
+   - Incluir resumen general, listado de participantes y avance por módulo.
+
+4. Mejorar detección automática del nombre del curso.
+   - Agregar más alias si aparecen nuevos cursos con problemas de tildes.
+   - Evaluar leer el nombre desde una celda fija de la planilla si existe.
+
+5. Mensajes de error más específicos al cargar archivos.
+   - Distinguir archivo vacío, columnas faltantes, formato inesperado y fechas no reconocidas.
+   - Mostrar sugerencias concretas para corregir la planilla.
+
+6. Soporte para múltiples cursos.
+   - Si una planilla trae varios cursos, definir si se muestran como tarjetas separadas o si se selecciona uno.
+   - Revisar cómo calcular KPIs cuando hay más de un curso.
+
+Pendientes de UX/UI
+-------------------
+7. Revisar responsive en celulares.
+   - Probar carga de archivos, tabla de participantes y drawer de detalle.
+   - Ajustar ancho del detalle si las fechas largas ocupan mucho espacio.
+
+8. Pulir texto institucional.
+   - Reemplazar referencias residuales a Gympro si el producto queda 100% para El Morenito Inc.
+   - Revisar README y metadescripción del HTML.
+
+9. Estado vacío y datos de ejemplo.
+   - Decidir si el dashboard debe abrir con demo data o con una pantalla de carga vacía.
+   - Mantener demo data si sirve para mostrar el producto sin planilla.
+
+Pendientes técnicos
+-------------------
+10. Agregar pruebas manuales documentadas.
+    - Checklist para probar .csv, .xlsx, filtros, búsqueda, detalle y fechas.
+    - Checklist para probar después de cada deploy.
+
+11. Documentar instalación en hosting.
+    - Agregar instrucciones en README para cPanel/FTP/subdominio.
+    - Incluir lista exacta de archivos que deben subirse.
+
+12. Revisar cache busting automático.
+    - Definir una convención simple de versión en assets.
+    - Actualizar la versión en index.html antes de cada subida al hosting final.
+
+Notas
+-----
+- La aplicación no requiere backend ni base de datos.
+- La información se procesa en el navegador del usuario.
+- Para evitar dependencias externas, PapaParse ya está incluido localmente.
+- En GitHub Pages puede haber caché de aproximadamente 10 minutos; en hosting propio dependerá de la configuración del servidor.

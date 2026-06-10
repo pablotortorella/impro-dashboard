@@ -66,6 +66,31 @@ const titleCaseFirst = (value) => {
   return text ? text.charAt(0).toUpperCase() + text.slice(1) : "";
 };
 
+const repairTextEncoding = (value) =>
+  String(value || "")
+    .replaceAll("\u00c3\u00a1", "á")
+    .replaceAll("\u00c3\u00a9", "é")
+    .replaceAll("\u00c3\u00ad", "í")
+    .replaceAll("\u00c3\u00b3", "ó")
+    .replaceAll("\u00c3\u00ba", "ú")
+    .replaceAll("\u00c3\u00bc", "ü")
+    .replaceAll("\u00c3\u00b1", "ñ")
+    .replaceAll("\u00c3\u0081", "Á")
+    .replaceAll("\u00c3\u0089", "É")
+    .replaceAll("\u00c3\u008d", "Í")
+    .replaceAll("\u00c3\u0093", "Ó")
+    .replaceAll("\u00c3\u009a", "Ú")
+    .replaceAll("\u00c3\u009c", "Ü")
+    .replaceAll("\u00c3\u0091", "Ñ")
+    .replaceAll("\u00c2", "")
+    .replace(/\uFFFD/g, " ");
+
+const cleanImportedLabel = (value) =>
+  repairTextEncoding(value)
+    .replace(/\s*\(\d+\)\s*$/i, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
 const knownCourseNames = [
   {
     aliases: ["expresi n oral y corporal", "expresion oral y corporal"],
@@ -78,9 +103,8 @@ const knownCourseNames = [
 ];
 
 const cleanCourseName = (value) => {
-  const text = String(value || "")
+  const text = cleanImportedLabel(value)
     .replace(/\.(csv|xlsx)$/i, "")
-    .replace(/\s*\(\d+\)\s*$/i, "")
     .replace(/[_-]+/g, " ")
     .replace(/\s+/g, " ")
     .trim();
@@ -104,6 +128,26 @@ const inferCourseName = (fileName, modules = []) => {
   const fileBaseName = cleanCourseName(fileName);
   const courseMatch = fileBaseName.match(/curso\s+(?:virtual\s+)?(?:en\s+)?(.+)$/i);
   return cleanCourseName(courseMatch?.[1] || fileBaseName);
+};
+
+const isEmailHeader = (value) => {
+  const text = normalizeText(value);
+  return text.includes("correo") || text.includes("email");
+};
+
+const isParticipantHeader = (value) => {
+  const text = normalizeText(value);
+  return (
+    text.includes("participante") ||
+    text.includes("estudiante") ||
+    text.includes("alumno") ||
+    text.includes("nombre")
+  );
+};
+
+const isDateHeader = (value) => {
+  const text = normalizeText(value);
+  return text.includes("fecha") || text.includes("finalizacion") || text.includes("completado el");
 };
 
 function getCounts() {
@@ -492,22 +536,26 @@ function inferClientName(rows, emailColumn) {
 }
 
 function buildDatasetFromRows(rows, fileName) {
-  const headerIndex = rows.findIndex((row) =>
-    row.some((cell) => normalizeText(cell).includes("correo") || normalizeText(cell).includes("email")),
-  );
+  const headerIndex = rows.findIndex((row) => row.some((cell) => isEmailHeader(cell)));
   if (headerIndex === -1) {
     throw new Error("No encontré una columna de correo. Revisa que el archivo mantenga el formato esperado.");
   }
 
   const header = rows[headerIndex];
-  const emailColumn = header.findIndex((cell) => {
-    const text = normalizeText(cell);
-    return text.includes("correo") || text.includes("email");
-  });
-  const nameColumn = Math.max(0, emailColumn - 1);
+  const emailColumn = header.findIndex((cell) => isEmailHeader(cell));
+  const explicitNameColumn = header.findIndex((cell, index) => index !== emailColumn && isParticipantHeader(cell));
+  const nameColumn = explicitNameColumn >= 0 ? explicitNameColumn : Math.max(0, emailColumn - 1);
   const moduleColumns = header
-    .map((cell, index) => ({ name: String(cell || "").trim(), index }))
-    .filter(({ name, index }) => name && index !== emailColumn);
+    .map((cell, index) => ({ name: cleanImportedLabel(cell), index }))
+    .filter(
+      ({ name, index }) =>
+        name &&
+        index !== emailColumn &&
+        index !== nameColumn &&
+        !isParticipantHeader(name) &&
+        !isEmailHeader(name) &&
+        !isDateHeader(name),
+    );
 
   if (!moduleColumns.length) {
     throw new Error("No encontré columnas de módulos o hitos para graficar.");
@@ -518,7 +566,7 @@ function buildDatasetFromRows(rows, fileName) {
     .slice(headerIndex + 1)
     .map((row, index) => {
       const email = String(row[emailColumn] || "").trim();
-      const name = String(row[nameColumn] || email || `Participante ${index + 1}`).trim();
+      const name = cleanImportedLabel(row[nameColumn] || email || `Participante ${index + 1}`);
       if (!email && !name) return null;
 
       const moduleStates = moduleColumns.map((module) => ({
