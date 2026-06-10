@@ -1,8 +1,8 @@
 const statusOrder = ["Finalizado", "En progreso", "Sin iniciar"];
 const statusColors = {
-  Finalizado: "#0f9f78",
-  "En progreso": "#3982e6",
-  "Sin iniciar": "#e99445",
+  Finalizado: "#55beb8",
+  "En progreso": "#4c1d53",
+  "Sin iniciar": "#f5a313",
 };
 
 let activeStatus = "all";
@@ -234,22 +234,35 @@ function renderOverview() {
     })
     .join("");
 
-  const attention = students
-    .filter((student) => student.status !== "Finalizado")
-    .sort((a, b) => a.progress - b.progress)
-    .slice(0, 6);
+  const notStarted = students
+    .filter((student) => student.status === "Sin iniciar")
+    .sort((a, b) => a.name.localeCompare(b.name, "es"));
+  const inProgress = students
+    .filter((student) => student.status === "En progreso")
+    .sort((a, b) => a.progress - b.progress || a.name.localeCompare(b.name, "es"));
+  const attentionGroups = notStarted.length
+    ? [{ title: "No iniciaron aún", students: notStarted }]
+    : [{ title: "No han terminado", students: inProgress }];
 
-  document.querySelector("#attention-list").innerHTML = attention.length
-    ? attention
+  const renderAttentionItem = (student) => `
+    <div class="attention-item">
+      <span class="avatar">${initials(student.name)}</span>
+      <span class="attention-info">
+        <strong>${escapeHtml(student.name)}</strong>
+        <small>${student.status} · ${student.progress}% de avance</small>
+      </span>
+      <button class="row-action" data-student-id="${student.id}" aria-label="Ver detalle">→</button>
+    </div>
+  `;
+
+  document.querySelector("#attention-list").innerHTML = attentionGroups.some((group) => group.students.length)
+    ? attentionGroups
+        .filter((group) => group.students.length)
         .map(
-          (student) => `
-            <div class="attention-item">
-              <span class="avatar">${initials(student.name)}</span>
-              <span class="attention-info">
-                <strong>${escapeHtml(student.name)}</strong>
-                <small>${student.status} · ${student.progress}% de avance</small>
-              </span>
-              <button class="row-action" data-student-id="${student.id}" aria-label="Ver detalle">→</button>
+          (group) => `
+            <div class="attention-group">
+              <h3 class="attention-group-title">${group.title}</h3>
+              ${group.students.map(renderAttentionItem).join("")}
             </div>
           `,
         )
@@ -264,6 +277,8 @@ function renderPeople() {
     const matchesQuery = normalizeText(`${student.name} ${student.email}`).includes(query);
     return matchesStatus && matchesQuery;
   });
+  const progressClass = (student) =>
+    student.status === "Sin iniciar" ? "low" : student.status === "En progreso" ? "mid" : "";
 
   document.querySelector("#people-table").innerHTML = visibleStudents
     .map(
@@ -282,7 +297,7 @@ function renderPeople() {
           <td>
             <div class="progress-cell">
               <div class="mini-progress">
-                <span class="${student.progress < 30 ? "low" : student.progress < 100 ? "mid" : ""}" style="width:${student.progress}%"></span>
+                <span class="${progressClass(student)}" style="width:${student.progress}%"></span>
               </div>
               <span>${student.progress}%</span>
             </div>
